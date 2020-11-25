@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import gzip
+import re
 import logging
 import json
 from io import BytesIO
@@ -32,11 +34,40 @@ def main() -> int:
     dirs_to_backup = config.get("directories") or []
     s3config = config.get("s3config")
     s3bucket = config.get("s3bucket")
+    retention_days = config.get("retention_days")
+
+    backup_dir = f"{BACKUP_ROOT}/{name}"
+    os.makedirs(backup_dir, exist_ok=True)
+
+    # clean up old backups
+    if retention_days:
+        logger.debug(f"Cleaning up old backups in {backup_dir}")
+        backup_files = [
+            f
+            for f in os.listdir(backup_dir)
+            if f.startswith("serverbackup-") and f.endswith(".tar.gz")
+        ]
+        for backup_file in backup_files:
+            backup_path = os.path.join(backup_dir, backup_file)
+            with tarfile.open(backup_path, mode="r:gz") as f:
+                try:
+                    metadata = json.loads(f.extractfile("METADATA").read())
+                    backup_timestamp = metadata["timestamp"]
+                except (KeyError, gzip.BadGzipFile):
+                    logger.warning(f"Backup {backup_file} corrupt - deleting")
+                    os.remove(backup_path)
+                    continue
+
+                days_old = int((time.time() - backup_timestamp) / (60 * 60 * 24))
+                if days_old > retention_days:
+                    logger.debug(
+                        f"Backup {backup_file} is {days_old} days old - deleting"
+                    )
+                    os.remove(backup_path)
 
     timestamp = int(time.time())
-    backup_path = f"{BACKUP_ROOT}/serverbackup-{name}-{timestamp}.tar.gz"
+    backup_path = f"{backup_dir}/serverbackup-{name}-{timestamp}.tar.gz"
     logger.debug(f"Starting backup of {name} to {backup_path}")
-
     backup = tarfile.open(backup_path, mode="w:gz")
     # Step 1: Dump database and add it to the backup tar
     for database, user, password in databases:
