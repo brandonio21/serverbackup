@@ -7,7 +7,8 @@ a stupid-simple python script to backup brandonio21 server data.
 2. dump directories from config
 3. dump some METADATA
 4. tar it all up
-5. upload to s3
+5. encrypt
+6. upload to s3
 
 configure at /etc/serverbackup.conf ; example:
 ```
@@ -19,12 +20,9 @@ configure at /etc/serverbackup.conf ; example:
   "directories": ["/etc", "/home", "/srv/http"],
   "s3config": "path/to/.s3cfg",
   "s3bucket": "my-s3-bucket",
+  "encryption_password": "password",
   "retention_days": 30
 }
 ```
 
 This backup script is run everyday using a systemd service/timer.
-
-TODO:
-* don't create new backups if nothing has changed. maybe dump dbs to disk and use rsync to manage this?
-* allow multiple backups

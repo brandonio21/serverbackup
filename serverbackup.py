@@ -35,6 +35,7 @@ def main() -> int:
     s3config = config.get("s3config")
     s3bucket = config.get("s3bucket")
     retention_days = config.get("retention_days")
+    encryption_password = config.get("encryption_password")
 
     backup_dir = f"{BACKUP_ROOT}/{name}"
     os.makedirs(backup_dir, exist_ok=True)
@@ -65,6 +66,7 @@ def main() -> int:
                     )
                     os.remove(backup_path)
 
+    # start backup process
     timestamp = int(time.time())
     backup_path = f"{backup_dir}/serverbackup-{name}-{timestamp}.tar.gz"
     logger.debug(f"Starting backup of {name} to {backup_path}")
@@ -99,9 +101,41 @@ def main() -> int:
 
     # Step 4: If config has data, upload to s3 using s3cmd
     if s3config and s3bucket:
+        encrypted_path = None
+        if encryption_password:
+            logger.debug("Encrypting before uploading to s3")
+            encrypted_path = f"{backup_path}.gpg"
+
+            keypipe_r, keypipe_w = os.pipe()
+            os.write(keypipe_w, f"{encryption_password}\n".encode())
+            os.close(keypipe_w)
+
+            subprocess.run(
+                [
+                    "gpg",
+                    "--passphrase-fd",
+                    str(keypipe_r),
+                    "--quiet",
+                    "--batch",
+                    "--output",
+                    encrypted_path,
+                    "--symmetric",
+                    backup_path,
+                ],
+                pass_fds=(keypipe_r,),
+            )
+            os.close(keypipe_r)
+
         logger.debug("Uploading to s3")
         subprocess.run(
-            ["s3cmd", "--config", s3config, "put", backup_path, f"s3://{s3bucket}"]
+            [
+                "s3cmd",
+                "--config",
+                s3config,
+                "put",
+                encrypted_path or backup_path,
+                f"s3://{s3bucket}",
+            ]
         )
 
 
