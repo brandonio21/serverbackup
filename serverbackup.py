@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-import gzip
-import re
-import logging
-import json
+
 from io import BytesIO
-import tarfile
-import subprocess
+import gzip
+import json
+import logging
 import os
+import re
+import subprocess
 import sys
+import tarfile
 import time
 
 BACKUP_ROOT = "/var/backups"
