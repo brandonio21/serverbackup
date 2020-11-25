@@ -16,3 +16,4 @@ TODO:
 * add logging
 * create 'latest' symlink
 * don't create new backups if nothing has changed. maybe dump dbs to disk and use rsync to manage this?
+* Upload to s3 using s3cmd and config file

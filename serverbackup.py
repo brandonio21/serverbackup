@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import json
-import hashlib
 from io import BytesIO
 import tarfile
 import subprocess
@@ -16,12 +15,12 @@ def main() -> int:
         config = json.load(f)
     databases = config["databases"]
     dirs_to_backup = config["directories"]
+    name = config["name"]
 
     timestamp = int(time.time())
-    backup_directory = f"{BACKUP_ROOT}/{timestamp}"
-    os.mkdir(backup_directory)
 
-    backup_path = f"{backup_directory}/backup.tar.gz"
+    backup_path = f"{BACKUP_ROOT}/serverbackup-{name}-{timestamp}.tar.gz"
+
     backup = tarfile.open(backup_path, mode="w:gz")
 
     # Step 1: Dump database and add it to the backup tar
@@ -38,19 +37,15 @@ def main() -> int:
     for dir_to_backup in dirs_to_backup:
         backup.add(dir_to_backup, recursive=True)
 
-    backup.close()
-
     # Step 3: Create a METADATA file
-    with open(backup_path, "rb") as f:
-        data = f.read()
-
     metadata = {}
-    metadata["sha256"] = hashlib.sha256(data).hexdigest()
-    metadata["len"] = len(data)
     metadata["timestamp"] = timestamp
+    metadata_data = json.dumps(metadata).encode('utf-8')
+    metadata_tarinfo = tarfile.TarInfo(name="METADATA")
+    metadata_tarinfo.size = len(metadata_data)
+    backup.addfile(metadata_tarinfo, BytesIO(metadata_data))
 
-    with open(f"{backup_directory}/METADATA", "w+") as f:
-        f.write(json.dumps(metadata))
+    backup.close()
 
 if __name__ == "__main__":
     sys.exit(main())
