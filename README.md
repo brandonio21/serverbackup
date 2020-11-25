@@ -25,4 +25,4 @@ configure at /etc/serverbackup.conf ; example:
 }
 ```
 
-This backup script is run everyday using a systemd service/timer.
+a systemd service/timer to run the script everyday is included.
