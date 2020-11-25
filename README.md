@@ -26,6 +26,5 @@ configure at /etc/serverbackup.conf ; example:
 This backup script is run everyday using a systemd service/timer.
 
 TODO:
-* cleanup partial backups (backups that do not have METADATA file)
 * don't create new backups if nothing has changed. maybe dump dbs to disk and use rsync to manage this?
 * allow multiple backups
