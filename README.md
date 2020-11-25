@@ -12,5 +12,7 @@ This backup script is run everyday using a systemd service/timer.
 
 TODO:
 * cleanup backups on run. should have backups for the last 14 days (config file)
+* cleanup partial backups (backups that do not have METADATA file)
+* add logging
 * create 'latest' symlink
 * don't create new backups if nothing has changed. maybe dump dbs to disk and use rsync to manage this?
