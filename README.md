@@ -7,4 +7,10 @@ a stupid-simple python script to backup brandonio21 server data.
 2. cp /home, /var, /etc, /srv/http
 3. tar it all up
 4. create metadata file
-5. delete folder
+
+This backup script is run everyday using a systemd service/timer.
+
+TODO:
+* cleanup backups on run. should have backups for the last 14 days (config file)
+* create 'latest' symlink
+* don't create new backups if nothing has changed. maybe dump dbs to disk and use rsync to manage this?

@@ -1,0 +1,9 @@
+[Unit]
+Description=Runs serverbackup.py
+Wants=serverbackup.timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/serverbackup.py
+User=backupuser
+Group=backupwriters

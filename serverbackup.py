@@ -8,8 +8,6 @@ import os
 import sys
 import time
 
-DESCRIPTION = "backup wordpress db, /home, /etc, and /srv"
-
 BACKUP_ROOT = "/var/backups"
 CONFIG_FILE = "/etc/serverbackup.conf"
 
@@ -50,7 +48,6 @@ def main() -> int:
     metadata["sha256"] = hashlib.sha256(data).hexdigest()
     metadata["len"] = len(data)
     metadata["timestamp"] = timestamp
-    metadata["description"] = DESCRIPTION
 
     with open(f"{backup_directory}/METADATA", "w+") as f:
         f.write(json.dumps(metadata))

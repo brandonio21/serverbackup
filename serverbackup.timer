@@ -1,0 +1,10 @@
+[Unit]
+Description=Run serverbackup every day at 1AM
+Requires=serverbackup.service
+
+[Timer]
+Unit=serverbackup.service
+OnCalendar=*-*-* 1:00:00
+
+[Install]
+WantedBy=timers.target
