@@ -1,4 +1,7 @@
 # serverbackup
+A personal script which I use to backup my servers. Limited to directories and
+mysql databases. Of course, as I use more software on my servers, the list of
+supported things will grow.
 
 ## philosophy
 I created this script because:
