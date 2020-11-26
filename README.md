@@ -3,6 +3,10 @@ A personal script which I use to backup my servers. Limited to directories and
 mysql databases. Of course, as I use more software on my servers, the list of
 supported things will grow.
 
+## development
+This script purposefully has no dependencies on external packages (only system binaries),
+so development is just editing the python script.
+
 ## philosophy
 I created this script because:
 * my servers need backups of important directories and databases. I've used off-the-shelf
