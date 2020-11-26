@@ -7,6 +7,8 @@ supported things will grow.
 This script purposefully has no dependencies on external packages (only system binaries),
 so development is just editing the python script.
 
+to test, create the relevant configuration files and run locally.
+
 ## philosophy
 I created this script because:
 * my servers need backups of important directories and databases. I've used off-the-shelf
@@ -64,6 +66,11 @@ a stupid-simple python script to backup brandonio21 server data.
 cp serverbackup.service /etc/systemd/system/
 cp serverbackup.timer /etc/systemd/system
 systemctl enable serverbackup.timer
+```
+
+4. "Install" the software by copying or symlinking it into /usr/local/bin
+```
+ln -s serverbackup.py /usr/local/bin
 ```
 
 4. Create a backup on demand.
