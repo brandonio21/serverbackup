@@ -57,7 +57,7 @@ def main() -> int:
                 try:
                     metadata = json.loads(f.extractfile("METADATA").read())
                     backup_timestamp = metadata["timestamp"]
-                except (KeyError, gzip.BadGzipFile, zlib.error):
+                except (KeyError, OSError, gzip.BadGzipFile, zlib.error):
                     logger.warning(
                         f"Backup {backup_file} corrupt - marking for deletion"
                     )
