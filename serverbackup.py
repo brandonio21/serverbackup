@@ -24,14 +24,6 @@ console_handler.setFormatter(
 )
 logger.addHandler(console_handler)
 
-# Special constant to handle gzip exceptions which changed in python 3.8
-# pre-3.8, all gzip exceptions threw OSError. In 3.8, there's some special
-# exceptions
-if sys.version_info.major >= 3 and sys.version_info.minor >= 8:
-    CORRUPT_BACKUP_EXCEPTIONS = (KeyError, OSError, gzip.BadGzipFile, zlib.error)
-else:
-    CORRUPT_BACKUP_EXCEPTIONS = (KeyError, OSError)
-
 
 def main() -> int:
     logger.debug("Parsing config file")
@@ -65,7 +57,7 @@ def main() -> int:
                 try:
                     metadata = json.loads(f.extractfile("METADATA").read())
                     backup_timestamp = metadata["timestamp"]
-                except CORRUPT_BACKUP_EXCEPTIONS:
+                except (KeyError, OSError, zlib.error):
                     logger.warning(
                         f"Backup {backup_file} corrupt - marking for deletion"
                     )
