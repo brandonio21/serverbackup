@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from io import BytesIO
+import zlib
 import gzip
 import json
 import logging
@@ -44,6 +45,7 @@ def main() -> int:
     # clean up old backups
     if retention_days:
         logger.debug(f"Cleaning up old backups in {backup_dir}")
+        backups_to_delete = set()
         backup_files = [
             f
             for f in os.listdir(backup_dir)
@@ -55,17 +57,27 @@ def main() -> int:
                 try:
                     metadata = json.loads(f.extractfile("METADATA").read())
                     backup_timestamp = metadata["timestamp"]
-                except (KeyError, gzip.BadGzipFile):
-                    logger.warning(f"Backup {backup_file} corrupt - deleting")
-                    os.remove(backup_path)
+                except (KeyError, gzip.BadGzipFile, zlib.error):
+                    logger.warning(
+                        f"Backup {backup_file} corrupt - marking for deletion"
+                    )
+                    backups_to_delete.add(backup_path)
                     continue
 
                 days_old = int((time.time() - backup_timestamp) / (60 * 60 * 24))
                 if days_old > retention_days:
                     logger.debug(
-                        f"Backup {backup_file} is {days_old} days old - deleting"
+                        f"Backup {backup_file} is {days_old} days old - marking for deletion"
                     )
-                    os.remove(backup_path)
+                    backups_to_delete.add(backup_path)
+
+        for backup_to_delete in backups_to_delete:
+            logger.debug(f"Deleting backup {backup_to_delete}")
+            os.remove(backup_to_delete)
+            encrypted_backup = f"{backup_to_delete}.gpg"
+            if os.path.isfile(encrypted_backup):
+                logger.debug(f"Deleting encrypted backup {encrypted_backup}")
+                os.remove(encrypted_backup)
 
     # start backup process
     timestamp = int(time.time())
