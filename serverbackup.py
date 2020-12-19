@@ -64,7 +64,10 @@ def main() -> int:
                     backups_to_delete.add(backup_path)
                     continue
 
-                days_old = int((time.time() - backup_timestamp) / (60 * 60 * 24))
+                # we use '23 hours' as a day instead of 24 so that if retention_days
+                # is set to '1' and this script runs daily, the old backups are
+                # guaranteed to be cleared.
+                days_old = int((time.time() - backup_timestamp) / (60 * 60 * 23))
                 if days_old > retention_days:
                     logger.debug(
                         f"Backup {backup_file} is {days_old} days old - marking for deletion"
