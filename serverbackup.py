@@ -38,6 +38,9 @@ def main() -> int:
     s3bucket = config.get("s3bucket")
     retention_days = config.get("retention_days")
     encryption_password = config.get("encryption_password")
+    keep_encrypted_backup_after_upload = (
+        config.get("keep_encrypted_backup_after_upload") or False
+    )
 
     backup_dir = f"{BACKUP_ROOT}/{name}"
     os.makedirs(backup_dir, exist_ok=True)
@@ -153,6 +156,11 @@ def main() -> int:
                 f"s3://{s3bucket}",
             ]
         )
+
+        logger.debug("Upload complete!")
+        if encrypted_path and not keep_encrypted_backup_after_upload:
+            logger.debug("Deleting encrypted backup")
+            os.remove(encrypted_path)
 
 
 if __name__ == "__main__":
