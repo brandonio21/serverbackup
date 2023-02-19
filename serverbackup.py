@@ -60,7 +60,7 @@ def main() -> int:
                 try:
                     metadata = json.loads(f.extractfile("METADATA").read())
                     backup_timestamp = metadata["timestamp"]
-                except (KeyError, OSError, zlib.error):
+                except (KeyError, OSError, EOFError, zlib.error):
                     logger.warning(
                         f"Backup {backup_file} corrupt - marking for deletion"
                     )
