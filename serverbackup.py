@@ -37,6 +37,7 @@ def main() -> int:
     s3config = config.get("s3config")
     s3bucket = config.get("s3bucket")
     retention_days = config.get("retention_days")
+    max_local_copies = config.get("max_local_copies")
     encryption_password = config.get("encryption_password")
     keep_encrypted_backup_after_upload = (
         config.get("keep_encrypted_backup_after_upload") or False
@@ -46,7 +47,14 @@ def main() -> int:
     os.makedirs(backup_dir, exist_ok=True)
 
     # clean up old backups
-    if retention_days:
+    # This flow is DEPRECATED. No new development should be done on this
+    # flow. Instead, users should prefer max_local_copies.
+    # For backwards incompatibility, the max_local_copies flow is not invoked
+    # unless retention_days is absent.
+    if retention_days is not None:
+        logger.warning("retention_days is DEPRECATED. Please switch to max_local_copies")
+
+        assert retention_days > 0, "retention_days must be greater than 0"
         logger.debug(f"Cleaning up old backups in {backup_dir}")
         backups_to_delete = set()
         backup_files = [
@@ -84,6 +92,47 @@ def main() -> int:
             if os.path.isfile(encrypted_backup):
                 logger.debug(f"Deleting encrypted backup {encrypted_backup}")
                 os.remove(encrypted_backup)
+
+    elif max_local_copies is not None:
+        assert max_local_copies > 0, "max_local_copies must be greater than 0"
+        logger.debug(f"Cleaning up old local backups in {backup_dir}")
+        backups_to_delete = set()
+        backup_paths_with_age = [] # list of tuples (days old, backup path)
+        backup_files = [
+            f
+            for f in os.listdir(backup_dir)
+            if f.startswith("serverbackup-") and f.endswith(".tar.gz")
+        ]
+        for backup_file in backup_files:
+            backup_path = os.path.join(backup_dir, backup_file)
+            with tarfile.open(backup_path, mode="r:gz") as f:
+                try:
+                    metadata = json.loads(f.extractfile("METADATA").read())
+                    backup_timestamp = metadata["timestamp"]
+                except (KeyError, OSError, EOFError, zlib.error):
+                    logger.warning(f"Backup {backup_file} corrupt - marking for deletion")
+                    backups_to_delete.add(backup_path)
+                    continue
+
+                # we use '23 hours' as a day instead of 24 so that if retention_days
+                # is set to '1' and this script runs daily, the old backups are
+                # guaranteed to be cleared.
+                days_old = int((time.time() - backup_timestamp) / (60 * 60 * 23))
+                backup_paths_with_age.append((days_old, backup_path))
+
+        backup_paths_sorted_by_age = [
+            backup_path
+            for (backup_age, backup_path) in sorted(backup_paths_with_age)
+        ]
+        backup_paths_within_max_copies = backup_paths_sorted_by_age[:max_local_copies]
+        backup_paths_beyond_max_copies = backup_paths_sorted_by_age[max_local_copies:]
+
+        logger.debug(
+            f"Found {len(backup_paths_sorted_by_age)} local backups. "
+            f"Keeping {len(backup_paths_within_max_copies)}, "
+            f"marking {len(backup_paths_beyond_max_copies)} for deletion."
+        )
+        backups_to_delete.update(backup_paths_beyond_max_copies)
 
     # start backup process
     timestamp = int(time.time())
