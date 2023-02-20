@@ -46,6 +46,8 @@ def main() -> int:
     backup_dir = f"{BACKUP_ROOT}/{name}"
     os.makedirs(backup_dir, exist_ok=True)
 
+    backups_to_delete = set()
+
     # clean up old backups
     # This flow is DEPRECATED. No new development should be done on this
     # flow. Instead, users should prefer max_local_copies.
@@ -56,7 +58,6 @@ def main() -> int:
 
         assert retention_days > 0, "retention_days must be greater than 0"
         logger.debug(f"Cleaning up old backups in {backup_dir}")
-        backups_to_delete = set()
         backup_files = [
             f
             for f in os.listdir(backup_dir)
@@ -85,18 +86,9 @@ def main() -> int:
                     )
                     backups_to_delete.add(backup_path)
 
-        for backup_to_delete in backups_to_delete:
-            logger.debug(f"Deleting backup {backup_to_delete}")
-            os.remove(backup_to_delete)
-            encrypted_backup = f"{backup_to_delete}.gpg"
-            if os.path.isfile(encrypted_backup):
-                logger.debug(f"Deleting encrypted backup {encrypted_backup}")
-                os.remove(encrypted_backup)
-
     elif max_local_copies is not None:
         assert max_local_copies > 0, "max_local_copies must be greater than 0"
         logger.debug(f"Cleaning up old local backups in {backup_dir}")
-        backups_to_delete = set()
         backup_paths_with_age = [] # list of tuples (days old, backup path)
         backup_files = [
             f
@@ -133,6 +125,15 @@ def main() -> int:
             f"marking {len(backup_paths_beyond_max_copies)} for deletion."
         )
         backups_to_delete.update(backup_paths_beyond_max_copies)
+
+    for backup_to_delete in backups_to_delete:
+        logger.debug(f"Deleting backup {backup_to_delete}")
+        os.remove(backup_to_delete)
+        encrypted_backup = f"{backup_to_delete}.gpg"
+        if os.path.isfile(encrypted_backup):
+            logger.debug(f"Deleting encrypted backup {encrypted_backup}")
+            os.remove(encrypted_backup)
+
 
     # start backup process
     timestamp = int(time.time())
