@@ -39,6 +39,8 @@ a stupid-simple python script to backup brandonio21 server data.
 {
   # this name will be encoded in the backup file
   "name": "site_name",
+  # (optional) where to store the backups locally.
+  "backup_root": "/var/backups",
   # (optional) tuples of (database, username, password) to dump with 'mysqldump'
   "databases": [
     ["database", "user", "password"]
@@ -51,8 +53,8 @@ a stupid-simple python script to backup brandonio21 server data.
   "s3bucket": "my-s3-bucket",
   # (optional) symmetric password to encryt before uploading to s3
   "encryption_password": "password",
-  # (optional) number of days to keep backups. 0 is "keep all backups"
-  "retention_days": 30
+  # (optional) max number of backups to keep locally. Must be greater than 0.
+  "max_local_copies": 5
 }
 ```
 2. Install pre-requisites
