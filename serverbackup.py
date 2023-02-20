@@ -12,7 +12,7 @@ import sys
 import tarfile
 import time
 
-BACKUP_ROOT = "/var/backups"
+DEFAULT_BACKUP_ROOT = "/var/backups"
 CONFIG_FILE = "/etc/serverbackup.conf"
 
 # configure logs
@@ -92,8 +92,9 @@ def main() -> int:
     keep_encrypted_backup_after_upload = (
         config.get("keep_encrypted_backup_after_upload") or False
     )
+    backup_root = config.get("backup_root") or DEFAULT_BACKUP_ROOT
 
-    backup_dir = f"{BACKUP_ROOT}/{name}"
+    backup_dir = f"{backup_root}/{name}"
     os.makedirs(backup_dir, exist_ok=True)
 
 
