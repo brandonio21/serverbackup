@@ -93,6 +93,11 @@ def main() -> int:
         config.get("keep_encrypted_backup_after_upload") or False
     )
     backup_root = config.get("backup_root") or DEFAULT_BACKUP_ROOT
+    include_timestamp_in_filename = config.get("include_timestamp_in_filename") or True
+
+    # config validation
+    if not include_timestamp_in_filename and max_local_copies > 1:
+        raise ValueError("Timestamp may only be toggled off if max_local_copies is 1")
 
     backup_dir = f"{backup_root}/{name}"
     os.makedirs(backup_dir, exist_ok=True)
@@ -151,7 +156,8 @@ def main() -> int:
 
     # start backup process
     timestamp = int(time.time())
-    backup_path = f"{backup_dir}/serverbackup-{name}-{timestamp}.tar.gz"
+    timestamp_str = f"-{timestamp}" if include_timestamp_in_filename else ""
+    backup_path = f"{backup_dir}/serverbackup-{name}{timestamp_str}.tar.gz"
     logger.debug(f"Starting backup of {name} to {backup_path}")
     backup = tarfile.open(backup_path, mode="w:gz")
     # Step 1: Dump database and add it to the backup tar

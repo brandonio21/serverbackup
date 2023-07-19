@@ -54,7 +54,9 @@ a stupid-simple python script to backup brandonio21 server data.
   # (optional) symmetric password to encryt before uploading to s3
   "encryption_password": "password",
   # (optional) max number of backups to keep locally. Must be greater than 0.
-  "max_local_copies": 5
+  "max_local_copies": 5,
+  # (optional) whether to include the timestamp in the backup name, only editable if max_local_copies is 1
+  "include_timestamp_in_filename": true
 }
 ```
 2. Install pre-requisites
