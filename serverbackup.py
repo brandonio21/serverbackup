@@ -89,11 +89,9 @@ def main() -> int:
     retention_days = config.get("retention_days")
     max_local_copies = config.get("max_local_copies")
     encryption_password = config.get("encryption_password")
-    keep_encrypted_backup_after_upload = (
-        config.get("keep_encrypted_backup_after_upload") or False
-    )
-    backup_root = config.get("backup_root") or DEFAULT_BACKUP_ROOT
-    include_timestamp_in_filename = config.get("include_timestamp_in_filename") or True
+    keep_encrypted_backup_after_upload = config.get("keep_encrypted_backup_after_upload", False)
+    backup_root = config.get("backup_root", DEFAULT_BACKUP_ROOT)
+    include_timestamp_in_filename = config.get("include_timestamp_in_filename", True)
 
     # config validation
     if not include_timestamp_in_filename and max_local_copies > 1:
