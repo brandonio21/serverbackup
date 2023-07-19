@@ -156,6 +156,19 @@ def main() -> int:
     timestamp = int(time.time())
     timestamp_str = f"-{timestamp}" if include_timestamp_in_filename else ""
     backup_path = f"{backup_dir}/serverbackup-{name}{timestamp_str}.tar.gz"
+
+    # corner case! if user only wants one backup and doesnt put the timestamp
+    # in the file name, then the backup might already exist. if so, we delete it.
+    if os.path.exists(backup_path):
+        if not include_timestamp_in_filename:
+            logger.debug(f"Backup {backup_path} already exists.")
+            logger.debug("Since we shouldn't include timestamp in filename, deleting old backup file first...")
+            os.remove(backup_path)
+        else:
+            logger.error(f"Backup {backup_path} already exists.")
+            return 1
+
+
     logger.debug(f"Starting backup of {name} to {backup_path}")
     backup = tarfile.open(backup_path, mode="w:gz")
     # Step 1: Dump database and add it to the backup tar
