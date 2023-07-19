@@ -164,6 +164,7 @@ def main() -> int:
         dump_proc = subprocess.run(
             ["mysqldump", database, f"--user={user}", f"--password={password}"],
             stdout=subprocess.PIPE,
+            check=True,
         )
         dump = dump_proc.stdout
         tarinfo = tarfile.TarInfo(name=f"{database}.sql")
@@ -210,6 +211,7 @@ def main() -> int:
                     backup_path,
                 ],
                 pass_fds=(keypipe_r,),
+                check=True,
             )
             os.close(keypipe_r)
 
@@ -223,6 +225,7 @@ def main() -> int:
                 encrypted_path or backup_path,
                 f"s3://{s3bucket}",
             ]
+            check=True,
         )
 
         logger.debug("Upload complete!")
