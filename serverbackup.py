@@ -237,7 +237,7 @@ def main() -> int:
                 "put",
                 encrypted_path or backup_path,
                 f"s3://{s3bucket}",
-            ]
+            ],
             check=True,
         )
 
